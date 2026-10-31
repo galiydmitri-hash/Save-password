@@ -2,10 +2,16 @@ function renderItem(values, passwordListEl) {
   if (!passwordListEl) return;
   const passwordItem = document.createElement('div');
   passwordItem.className = 'password-container';
+  
+  passwordItem.dataset.id = values.id;
+  
   passwordItem.innerHTML = `
     <p class="name-data">${escapeHTML(values.name)}</p>
-    <hr class="line"/>
+    <hr class="line" />
     <p class="password-data">${escapeHTML(values.password)}</p>
+    <div class="actions-container">
+      <button class="delete-btn">Видалити</button>
+    </div>
   `;
   passwordListEl.appendChild(passwordItem);
 }
@@ -83,7 +89,12 @@ export function passwordList() {
       return;
     }
 
-    const values = { name: inputValueName, password: inputValuePassword };
+    const values = { 
+      id: crypto.randomUUID(), 
+      name: inputValueName, 
+      password: inputValuePassword 
+    };
+    
     renderContainerItems.push(values);
     localStorage.setItem(currentStorageKey, JSON.stringify(renderContainerItems));
     renderItem(values, activePasswordListEl);
@@ -99,6 +110,79 @@ export function passwordList() {
     modal.classList.remove('is-active');
   });
 }
+
+export function initDeleteBtn() {
+  const categories = document.querySelectorAll('.categories');
+
+  categories.forEach((category) => {
+    category.addEventListener('click', (event) => {
+      const passwordContainer = event.target.closest('.password-container');
+      if (!passwordContainer) return;
+
+      const actionsContainer = passwordContainer.querySelector('.actions-container');
+      if (!actionsContainer) return;
+
+      const deleteBtn = actionsContainer.querySelector('.delete-btn');
+
+      if (deleteBtn && deleteBtn.contains(event.target)) {
+        event.stopPropagation();
+
+        const itemId = passwordContainer.dataset.id;
+        if (!itemId) return;
+
+        const categoryNameEl = category.querySelector('.name');
+        const categoryName = categoryNameEl ? categoryNameEl.textContent.trim() : 'default';
+        const currentStorageKey = `passwords_${categoryName}`;
+
+        let storage = JSON.parse(localStorage.getItem(currentStorageKey)) || [];
+        storage = storage.filter((item) => String(item.id) !== String(itemId));
+        localStorage.setItem(currentStorageKey, JSON.stringify(storage));
+
+        const lengthEl = category.querySelector('.length');
+        if (lengthEl) lengthEl.textContent = storage.length;
+
+        passwordContainer.remove();
+        return;
+      }
+
+      if (event.target === actionsContainer) return;
+
+      if (actionsContainer.classList.contains('is-active')) {
+        actionsContainer.classList.remove('is-active');
+        return;
+      }
+
+      document.querySelectorAll('.actions-container.is-active').forEach((el) => {
+        el.classList.remove('is-active');
+      });
+
+      const rect = passwordContainer.getBoundingClientRect();
+      const x = event.clientX - rect.left;
+      const y = event.clientY - rect.top;
+
+      actionsContainer.classList.add('is-active');
+
+      const containerWidth = actionsContainer.getBoundingClientRect().width;
+      const containerHeight = actionsContainer.getBoundingClientRect().height;
+
+      const spaceBelow = rect.height - y;
+      const spaceRight = rect.width - x;
+
+      if (spaceBelow < containerHeight && y > containerHeight) {
+        actionsContainer.style.top = `${y - containerHeight}px`;
+      } else {
+        actionsContainer.style.top = `${Math.max(0, Math.min(y, rect.height - containerHeight))}px`;
+      }
+
+      if (spaceRight < containerWidth && x > containerWidth) {
+        actionsContainer.style.left = `${x - containerWidth}px`;
+      } else {
+        actionsContainer.style.left = `${Math.max(0, Math.min(x, rect.width - containerWidth))}px`;
+      }
+    });
+  });
+}
+
 
 function escapeHTML(str) {
   if (str === undefined || str === null) return '';

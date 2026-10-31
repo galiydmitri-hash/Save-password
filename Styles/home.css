@@ -215,7 +215,7 @@ main{
 }
 
 .categories-name:focus, .password-name:focus, .password:focus {
-  border-color: var(--border-focus);
+  border-color: var(--color-secondary);
   background: var(--bg-secondary);
 }
 
@@ -312,6 +312,7 @@ main{
 }
 
 .password-container{
+  position: relative;
   height: 90px;
   width: 100%;
   display: flex;
@@ -342,4 +343,36 @@ main{
 .password-data{
   font-size: var(--font-md);
   color: var(--text-primary);
+}
+
+.actions-container{
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  height: auto;
+  width: auto;
+  padding: 5px;
+  background-color: var(--bg-card);
+  box-shadow: var(--shadow-button);
+  border-radius: var(--radius-md);
+  transition: var(--transition-fast);
+}
+
+.actions-container.is-active{
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.delete-btn{
+  height: 50px;
+  width: 150px;
+  border-radius: var(--radius-md);
+  border: none;
+  background-color: var(--btn-danger-bg);
+  font-family: var(--font-family);
+  font-size: 18px;
+  color: var(--btn-danger-text);
+  cursor: pointer;
 }
